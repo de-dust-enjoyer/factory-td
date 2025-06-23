@@ -1,8 +1,8 @@
 from config import *
 
-def cutSpritesheet(spritesheet:pygame.surface.Surface, tilesize:int, numSprites:int):
+def cutSpritesheet(spritesheet:pygame.surface.Surface, tilesize:int):
     frames = []
-    for i in range(numSprites):
+    for i in range(int(spritesheet.get_width() / tilesize)):
         tile = pygame.Surface((tilesize, tilesize), pygame.SRCALPHA)
         rect = pygame.Rect(i * tilesize, 0, tilesize, tilesize)
         tile.blit(spritesheet, (0, 0), rect)

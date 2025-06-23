@@ -9,8 +9,10 @@ class Building(Tile):
         self.animationTimer = 0
         self.animationFrame = 0
 
-        self.frames = cutSpritesheet(spritesheet, TILESIZE, int(spritesheet.get_width() / TILESIZE))
+        self.frames = cutSpritesheet(spritesheet, TILESIZE)
         self.rect = self.frames[0].get_rect(topleft= self.pos)
+
+        self.add(tilesBuildingGroup)
 
         
 
@@ -19,7 +21,7 @@ class Building(Tile):
         if self.animationTimer >= self.animationSpeed:
             self.animationFrame += 1
             self.animationTimer = 0
-            if self.animationFrame > len(self.frames):
+            if self.animationFrame == len(self.frames):
                 self.animationFrame = 0
 
     def draw(self, display):

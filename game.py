@@ -4,6 +4,7 @@ from item import Item
 from conv import Conv
 from worldTile import WorldTile
 
+
 class Game:
     def __init__(self):
         pygame.init()
@@ -11,11 +12,7 @@ class Game:
         pygame.display.set_caption("FACTORY GAME")
         self.running = True
         self.mousePos = (0, 0)
-
-        # creating sprite groups
-        self.tilesWorldGroup = pygame.sprite.Group()
-        self.tilesBuildingGroup = pygame.sprite.Group()
-        self.itemGroup = pygame.sprite.Group()
+        self.clock = pygame.time.Clock()
         
         # importing imgs
         self.imgConvStraight = pygame.image.load("assets/sprites/conv/conv-up.png").convert_alpha()
@@ -23,10 +20,9 @@ class Game:
         self.imgConvTurnRight = pygame.image.load("assets/sprites/conv/conv-turn-right.png").convert_alpha()
 
         # debug--------------------------
-        print(type(self.imgConvStraight))
-        self.conveyor = Conv((10,10), self.imgConvStraight, "left")
-        self.conveyor.add(self.tilesBuildingGroup)
-        print(self.tilesBuildingGroup)
+        
+        
+
         # debug--------------------------
         
 
@@ -46,15 +42,24 @@ class Game:
 
     # the gameLogic method updates the game state (all the exiting stuff happens here)
     def gameLogic(self):
-        self.tilesBuildingGroup.update()
+        tilesBuildingGroup.update()
 
+        if pygame.mouse.get_pressed()[0]:
+            conveyor = Conv((self.mousePos[0] / TILESIZE, self.mousePos[1] / TILESIZE), self.imgConvTurnLeft, "left")
+        elif pygame.mouse.get_pressed()[1]:
+            conveyor = Conv((self.mousePos[0] / TILESIZE, self.mousePos[1] / TILESIZE), self.imgConvStraight, "left")
+        elif pygame.mouse.get_pressed()[2]:
+            conveyor = Conv((self.mousePos[0] / TILESIZE, self.mousePos[1] / TILESIZE), self.imgConvTurnRight, "left")
     # the drawing method (it draws everything. shocking right?)
     def renderFrame(self):
         self.display.fill("black")
 
-        self.tilesWorldGroup.draw(self.display)
-        self.tilesBuildingGroup.draw(self.display)
-        self.itemGroup.draw(self.display)
+        for sprite in tilesWorldGroup:
+            sprite.draw(self.display)
+        for sprite in tilesBuildingGroup:
+            sprite.draw(self.display)
+        for sprite in itemGroup:
+            sprite.draw(self.display)
 
         pygame.display.flip()
 
@@ -66,6 +71,8 @@ class Game:
             self.gameLogic()
 
             self.renderFrame()
+
+            self.clock.tick(FPS)
             
         
         pygame.quit()
