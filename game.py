@@ -2,7 +2,7 @@ from config import *
 from tile import Tile
 from item import Item
 from conv import Conv
-from worldTile import WorldTile
+from worldBuilder import WorldBuilder
 
 
 class Game:
@@ -21,8 +21,9 @@ class Game:
 
         # debug--------------------------
         
+        self.worldBuilder = WorldBuilder()
+        self.world = self.worldBuilder.buildWorld("assets/maps/desert-01.tmx")
         
-
         # debug--------------------------
         
 
@@ -53,7 +54,7 @@ class Game:
     # the drawing method (it draws everything. shocking right?)
     def renderFrame(self):
         self.display.fill("black")
-
+        self.display.blit(self.world, (0, 0))
         for sprite in tilesWorldGroup:
             sprite.draw(self.display)
         for sprite in tilesBuildingGroup:

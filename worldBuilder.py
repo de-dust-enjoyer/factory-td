@@ -4,29 +4,23 @@ from spritesheet import Spritesheet
 from pytmx.util_pygame import load_pygame
 
 
-class Worldbuilder:
+class WorldBuilder:
     def __init__(self):
-        self.tilemap = None
-        self.spritesheet = None
+        self.tmxData = None
         self.tilesize = None
-        self.worldImg = None
-    
-    def buildWorld(self, tilemap:dict, spritesheet:Spritesheet, tilesize:int):
-        self.tilemap = tilemap
-        self.spritesheet = spritesheet
-        self.tilesize = tilesize
-        worldSurf = pygame.Surface((len(tilemap[0]) * tilesize, len(tilemap) * tilesize), pygame.SRCALPHA)
-
-        for row in tilemap:
-            for tile in row:
-                worldTile = WorldTile((tile.key, row.key), self.spritesheet.get_img_world(tile))
-                worldTile.draw(worldSurf)
-
-        return worldSurf
-    
-    def buildLevel(self, pathToTilemap:str):
-        tmxData = load_pygame(pathToTilemap)
+        self.worldSurf = None
+        self.levelName = None
 
 
-        
+    def buildWorld(self, pathToTilemap:str):
+        self.tmxData = load_pygame(pathToTilemap)
+        self.tilesize = (self.tmxData.tilewidth, self.tmxData.tileheight)
+        worldSurf = pygame.Surface((self.tmxData.width * self.tilesize[0], self.tmxData.height * self.tilesize[1]), pygame.SRCALPHA)
+        for layer in self.tmxData.visible_layers:
+            for x, y, surf in layer.tiles():
+                worldSurf.blit(surf, (x * self.tilesize[0], y * self.tilesize[1]))
+        self.worldSurf = worldSurf
+        self.levelName = os.path.splitext(os.path.basename(pathToTilemap))[0]
+
+        return worldSurf  
 

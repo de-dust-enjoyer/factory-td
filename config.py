@@ -1,4 +1,4 @@
-import pygame
+import pygame, os
 # constants
 FPS = 60
 SCREENSIZE = (1920, 1080)
