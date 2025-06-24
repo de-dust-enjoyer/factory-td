@@ -3,6 +3,7 @@ from tile import Tile
 from item import Item
 from conv import Conv
 from worldBuilder import WorldBuilder
+from debugInfo import DebugInfo
 
 
 
@@ -13,9 +14,13 @@ class Game:
         pygame.display.set_caption("FACTORY GAME")
         self.running = True
         self.mousePos = (0, 0)
+        self.keys = pygame.key.get_pressed()
         self.clock = pygame.time.Clock()
         self.clicked = False
         
+        
+        # setting the sisplay surface for the camera
+        cameraGroup.setDisplaySurf(self.display)
         # importing imgs
         self.imgConvStraight = pygame.image.load("assets/sprites/conv/conv-up.png").convert_alpha()
         self.imgConvTurnLeft = pygame.image.load("assets/sprites/conv/conv-turn-left.png").convert_alpha()
@@ -23,47 +28,65 @@ class Game:
 
         # debug--------------------------
         
-        self.worldBuilder = WorldBuilder()
-        self.worldBuilder.buildWorld("assets/maps/desert-01.tmx")
+
+        debugFont = pygame.font.SysFont("consolas", 16)
+        self.debugInfo = DebugInfo(debugFont)
+        self.worldBuilder = WorldBuilder("assets/maps/desert-01.tmx")
+        self.renderedSprites = 0
+        cameraGroup.setWorldSurf(self.worldBuilder.worldSurf)
+
         
         # debug--------------------------
         
         
-        
-
-        
-
+    
 
     # just a basic input collection method (it reads the player input)
     def getInput(self):
         self.mousePos = pygame.mouse.get_pos()
+        self.keys = pygame.key.get_pressed()
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
+            # zooming only here possible
+            if event.type == pygame.MOUSEWHEEL:
+                cameraGroup.zoomScale += event.y * cameraGroup.zoomForce
+                cameraGroup.zoomScale = max(cameraGroup.minZoom, min(cameraGroup.maxZoom, cameraGroup.zoomScale))
+                cameraGroup.zoomScale = round(cameraGroup.zoomScale * 2) / 2
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_DELETE:
+                    self.debugInfo.visible = not self.debugInfo.visible   
+        
                 
                 
 
     # the gameLogic method updates the game state (all the exiting stuff happens here)
     def gameLogic(self):
         tilesBuildingGroup.update()
-        if not pygame.mouse.get_pressed():
-            self.clicked = False
-        if not self.clicked:
-            
-            if pygame.mouse.get_pressed()[0]:
-                conveyor = Conv(tools.gridAllign(self.mousePos, TILESIZE), self.imgConvTurnLeft, "left")
-                self.clicked = True
-            elif pygame.mouse.get_pressed()[1]:
-                conveyor = Conv(tools.gridAllign(self.mousePos, TILESIZE), self.imgConvStraight, "left")
-                self.clicked = True
-            elif pygame.mouse.get_pressed()[2]:
-                conveyor = Conv(tools.gridAllign(self.mousePos, TILESIZE), self.imgConvTurnRight, "left")
-                self.clicked = True
+
+
+        # debug---------------
+        self.debugInfo.add("FPS", round(self.clock.get_fps()))
+        self.debugInfo.add("Camera Offset", cameraGroup.offset)
+        self.debugInfo.add("Zoom", round(cameraGroup.zoomScale, 2))
+        self.debugInfo.add("Mouse Pos", pygame.mouse.get_pos())
+        self.debugInfo.add("Sprites Rendered", self.renderedSprites)
+        #self.debug_info.add("Tile Under Cursor", world_pos)
+
+
+        # debug---------------
+        
+
+        
+
     # the drawing method (it draws everything. shocking right?)
     def renderFrame(self):
         self.display.fill("black")
 
-        cameraGroup.customDraw(self.display)
+        self.renderedSprites = cameraGroup.customDraw(self.keys, self.mousePos)
+
+        self.debugInfo.render(self.display)
 
         pygame.display.flip()
 
@@ -75,8 +98,8 @@ class Game:
             self.gameLogic()
 
             self.renderFrame()
-
-            self.clock.tick(FPS)
+            #print(self.clock.get_fps())
+            self.clock.tick(500)
             
         
         pygame.quit()

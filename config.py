@@ -1,4 +1,4 @@
-import pygame, os, tools
+import pygame
 from camera import CameraGroup
 # constants
 FPS = 60
@@ -11,5 +11,5 @@ tilesWorldGroup = pygame.sprite.Group()
 tilesBuildingGroup = pygame.sprite.Group()
 tilesConvGroup = pygame.sprite.Group()
 itemGroup = pygame.sprite.Group()
-cameraGroup = CameraGroup()
+cameraGroup = CameraGroup([tilesWorldGroup, tilesBuildingGroup, itemGroup])
 
