@@ -22,3 +22,7 @@ def rotate(img, rotationValue):
             rotation = 180
         case _:
             rotation = rotationValue
+
+def gridAllign(pos:tuple, tilesize:int):
+    return (round(pos[0] / tilesize) * tilesize, round(pos[1] / tilesize) * tilesize)
+    

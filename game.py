@@ -5,6 +5,7 @@ from conv import Conv
 from worldBuilder import WorldBuilder
 
 
+
 class Game:
     def __init__(self):
         pygame.init()
@@ -13,6 +14,7 @@ class Game:
         self.running = True
         self.mousePos = (0, 0)
         self.clock = pygame.time.Clock()
+        self.clicked = False
         
         # importing imgs
         self.imgConvStraight = pygame.image.load("assets/sprites/conv/conv-up.png").convert_alpha()
@@ -22,11 +24,11 @@ class Game:
         # debug--------------------------
         
         self.worldBuilder = WorldBuilder()
-        self.world = self.worldBuilder.buildWorld("assets/maps/desert-01.tmx")
+        self.worldBuilder.buildWorld("assets/maps/desert-01.tmx")
         
         # debug--------------------------
         
-
+        
         
 
         
@@ -44,23 +46,24 @@ class Game:
     # the gameLogic method updates the game state (all the exiting stuff happens here)
     def gameLogic(self):
         tilesBuildingGroup.update()
-
-        if pygame.mouse.get_pressed()[0]:
-            conveyor = Conv((self.mousePos[0] / TILESIZE, self.mousePos[1] / TILESIZE), self.imgConvTurnLeft, "left")
-        elif pygame.mouse.get_pressed()[1]:
-            conveyor = Conv((self.mousePos[0] / TILESIZE, self.mousePos[1] / TILESIZE), self.imgConvStraight, "left")
-        elif pygame.mouse.get_pressed()[2]:
-            conveyor = Conv((self.mousePos[0] / TILESIZE, self.mousePos[1] / TILESIZE), self.imgConvTurnRight, "left")
+        if not pygame.mouse.get_pressed():
+            self.clicked = False
+        if not self.clicked:
+            
+            if pygame.mouse.get_pressed()[0]:
+                conveyor = Conv(tools.gridAllign(self.mousePos, TILESIZE), self.imgConvTurnLeft, "left")
+                self.clicked = True
+            elif pygame.mouse.get_pressed()[1]:
+                conveyor = Conv(tools.gridAllign(self.mousePos, TILESIZE), self.imgConvStraight, "left")
+                self.clicked = True
+            elif pygame.mouse.get_pressed()[2]:
+                conveyor = Conv(tools.gridAllign(self.mousePos, TILESIZE), self.imgConvTurnRight, "left")
+                self.clicked = True
     # the drawing method (it draws everything. shocking right?)
     def renderFrame(self):
         self.display.fill("black")
-        self.display.blit(self.world, (0, 0))
-        for sprite in tilesWorldGroup:
-            sprite.draw(self.display)
-        for sprite in tilesBuildingGroup:
-            sprite.draw(self.display)
-        for sprite in itemGroup:
-            sprite.draw(self.display)
+
+        cameraGroup.customDraw(self.display)
 
         pygame.display.flip()
 
