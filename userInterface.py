@@ -3,6 +3,7 @@ from config import *
 class MiniMap(pygame.sprite.Sprite):
     def __init__(self, worldSurf:pygame.Surface, sizeX:int, pos:tuple):
         super().__init__()
+        self.visible = True
 
         self.borders = {"left": 10, "top": 10, "right": 10, "bottom": 10}
 
@@ -33,17 +34,18 @@ class MiniMap(pygame.sprite.Sprite):
         self.add(uiGroup)
 
     def update(self, cameraRect:pygame.Rect):
+        if self.visible:
         # updating the viewRect
-        width = cameraRect.width * self.mapScale
-        height = cameraRect.height * self.mapScale
-        self.viewRect.size = (width, height)
-        left = cameraRect.left * self.mapScale + self.borders["left"]
-        top = cameraRect.top * self.mapScale + self.borders["top"]
-        self.viewRect.topleft = (left, top)
+            width = cameraRect.width * self.mapScale
+            height = cameraRect.height * self.mapScale
+            self.viewRect.size = (width, height)
+            left = cameraRect.left * self.mapScale + self.borders["left"]
+            top = cameraRect.top * self.mapScale + self.borders["top"]
+            self.viewRect.topleft = (left, top)
 
-        # drawing the map on the self.image surface
-        self.image.fill(self.bgColor) # type:ignore
-        self.image.blit(self.mapSurf, self.mapRect) # type:ignore
-        pygame.draw.rect(self.image, self.viewRectColor, self.viewRect, self.viewRectThickness) # type:ignore
-        pygame.draw.rect(self.image, self.borderColor, (0,0,self.rect.width,self.rect.height), self.borderThickness) # type:ignore
+            # drawing the map on the self.image surface
+            self.image.fill(self.bgColor) # type:ignore
+            self.image.blit(self.mapSurf, self.mapRect) # type:ignore
+            pygame.draw.rect(self.image, self.viewRectColor, self.viewRect, self.viewRectThickness) # type:ignore
+            pygame.draw.rect(self.image, self.borderColor, (0,0,self.rect.width,self.rect.height), self.borderThickness) # type:ignore
         

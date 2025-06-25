@@ -7,18 +7,18 @@ class CameraGroup(pygame.sprite.Group):
         self.hasDisplaySurf = False # camera needs display surf to work
         self.displaySurf = None
         self.groups = groups
-        self.speed = 6
+        self.speed = 600
         self.speedModifier = 3
 
         # need to render tiles as one surface when zooming out:
-        self.worldSurf1x = None # same as Display ´Surf
-        self.worldSurf05x = None
         self.hasWorldSurf = False
         self.worldWidth = None
         self.worldHeight = None
+        self.worldSurfaces = {}
 
 
         self.offset = pygame.math.Vector2()
+        self.oldOffset = self.offset.copy()
         self.cameraBorders = {"left": 150, "right": 150, "top": 150, "bottom": 150}
         self.cameraRect = pygame.Rect()
         self.direction = pygame.math.Vector2()
@@ -44,23 +44,37 @@ class CameraGroup(pygame.sprite.Group):
         self.hasDisplaySurf = True
 
     def setWorldSurf(self, worldsurf:pygame.Surface):
-        self.worldSurf1x = worldsurf
-        self.worldSurf05x = pygame.transform.scale(worldsurf, (worldsurf.get_width() * 0.5, worldsurf.get_height() * 0.5))
+        self.worldSurfaces = {
+        1.0:worldsurf,
+        0.5:pygame.transform.scale(worldsurf, (int(worldsurf.get_width() * 0.5), int(worldsurf.get_height() * 0.5))),
+        1.5:pygame.transform.scale(worldsurf, (int(worldsurf.get_width() * 1.5), int(worldsurf.get_height() * 1.5))),
+        2.0:pygame.transform.scale(worldsurf, (worldsurf.get_width() * 2.0, worldsurf.get_height() * 2.0)),
+        2.5:pygame.transform.scale(worldsurf, (int(worldsurf.get_width() * 2.5), int(worldsurf.get_height() * 2.5))),
+        3.0:pygame.transform.scale(worldsurf, (worldsurf.get_width() * 3.0, worldsurf.get_height() * 3.0)),
+        3.5:pygame.transform.scale(worldsurf, (int(worldsurf.get_width() * 3.5), int(worldsurf.get_height() * 3.5))),
+        4.0:pygame.transform.scale(worldsurf, (worldsurf.get_width() * 4.0, worldsurf.get_height() * 4.0))
+        }
         self.hasWorldSurf = True
         self.worldWidth = worldsurf.get_width()
         self.worldHeight = worldsurf.get_height()
 
-    def update(self, keys, mousePos):
+    def update(self, keys:pygame.key.ScancodeWrapper, mousePos:tuple, dt:float):
         if not self.hasDisplaySurf:
             raise RuntimeError("Camera display surface not set!")
-        self.moveCamera(keys, mousePos)
+        self.moveCamera(keys, mousePos, dt)
     
     def customDraw(self):
         if not self.hasDisplaySurf:
             raise RuntimeError("Camera display surface not set!")
+        elif not self.hasWorldSurf:
+            raise RuntimeError("World surface not set")
         
         self.cameraSurf.fill((0,0,0))
-        self.offset = round(self.offset, 0)
+
+        
+        self.offset.x = round(self.offset.x, 0)
+        self.offset.y = round(self.offset.y, 0)
+
         
         visible_w = self.w / self.zoomScale
         visible_h = self.h / self.zoomScale
@@ -68,32 +82,40 @@ class CameraGroup(pygame.sprite.Group):
         self.cameraRect.topleft = (self.offset.x, self.offset.y)
         self.cameraRect.size = (visible_w, visible_h)
         renderedSprites = 0 # for debugging
-        if self.zoomScale > 1:
-            for group in self.groups:
-                for sprite in group:
-                    if self.cameraRect.colliderect(sprite.rect):
-                        zoomedImg = sprite.getScaledImg(self.zoomScale)
-                        spriteOffsetPos = (sprite.rect.topleft - self.offset) * self.zoomScale
-                        self.displaySurf.blit(zoomedImg, spriteOffsetPos) # type:ignore
-                        renderedSprites += 1
-        elif self.zoomScale <= 1 and self.hasWorldSurf:
+    
+        worldOffsetPos = -self.offset * self.zoomScale
+        worldSurf = self.worldSurfaces[self.zoomScale]
+        if not worldSurf:
+            raise RuntimeError(f"zoom level {self.zoomScale} does not exist!")
+        else:
+            self.displaySurf.blit(worldSurf, worldOffsetPos) # type:ignore
+
+
+        for group in self.groups:
+            for sprite in group:
+                if self.cameraRect.colliderect(sprite.rect):
+                    scaledImg = sprite.getScaledImg(self.zoomScale)
+                    spriteOffsetPos = (sprite.rect.topleft - self.offset) * self.zoomScale
+                    self.displaySurf.blit(scaledImg, spriteOffsetPos) # type:ignore
+                    renderedSprites += 1
+
                 
-            worldOffsetPos = -self.offset
-            if self.zoomScale == 1:
-                self.displaySurf.blit(self.worldSurf1x, worldOffsetPos) # type:ignore
-            elif self.zoomScale == 0.5:
-                self.displaySurf.blit(self.worldSurf05x, worldOffsetPos) # type:ignore
+        #if self.zoomScale == 1:
+        #    self.displaySurf.blit(self.worldSurf1x, worldOffsetPos) # type:ignore
+        #elif self.zoomScale == 0.5:
+        #    self.displaySurf.blit(self.worldSurf05x, worldOffsetPos) # type:ignore
         return renderedSprites
 
         
             
 
-    def moveCamera(self, keys:pygame.key.ScancodeWrapper, mousePos:tuple):
+    def moveCamera(self, keys:pygame.key.ScancodeWrapper, mousePos:tuple, dt:float):
         # checks if shift is pressed and aplies faster speed if so
+        
         if keys[pygame.K_LSHIFT]:
-            cameraSpeed = self.speed * self.speedModifier / self.zoomScale
+            cameraSpeed = self.speed * self.speedModifier / (self.zoomScale/2) * dt
         else:
-            cameraSpeed = self.speed / self.zoomScale
+            cameraSpeed = self.speed / (self.zoomScale/2) * dt
 
         self.moveCameraWithMouse(mousePos)
         self.moveCameraWithKeys(keys)
