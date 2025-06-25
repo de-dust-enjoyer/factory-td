@@ -4,6 +4,8 @@ from item import Item
 from conv import Conv
 from worldBuilder import WorldBuilder
 from debugInfo import DebugInfo
+from userInterface import MiniMap
+
 
 
 
@@ -17,6 +19,9 @@ class Game:
         self.keys = pygame.key.get_pressed()
         self.clock = pygame.time.Clock()
         self.clicked = False
+
+        self.uiScale = 1
+
         
         
         # setting the sisplay surface for the camera
@@ -28,16 +33,19 @@ class Game:
 
         # debug--------------------------
         
-
         debugFont = pygame.font.SysFont("consolas", 16)
         self.debugInfo = DebugInfo(debugFont)
-        self.worldBuilder = WorldBuilder("assets/maps/desert-01.tmx")
         self.renderedSprites = 0
-        cameraGroup.setWorldSurf(self.worldBuilder.worldSurf)
-
         
         # debug--------------------------
-        
+
+        # initializing objects
+        self.worldBuilder = WorldBuilder("assets/maps/desert-01.tmx")
+        cameraGroup.setWorldSurf(self.worldBuilder.worldSurf) # type:ignore
+        miniMapSize = (200 * self.uiScale)
+        miniMapPos = (self.display.get_width() - miniMapSize, 0)
+
+        self.miniMap = MiniMap(self.worldBuilder.worldSurf, miniMapSize, miniMapPos) # type:ignore
         
     
 
@@ -51,9 +59,16 @@ class Game:
                 self.running = False
             # zooming only here possible
             if event.type == pygame.MOUSEWHEEL:
+                mouseScreen = pygame.Vector2(self.mousePos)
+                mouseWorldBefore = cameraGroup.offset + mouseScreen / cameraGroup.zoomScale
+                
                 cameraGroup.zoomScale += event.y * cameraGroup.zoomForce
                 cameraGroup.zoomScale = max(cameraGroup.minZoom, min(cameraGroup.maxZoom, cameraGroup.zoomScale))
-                cameraGroup.zoomScale = round(cameraGroup.zoomScale * 2) / 2
+                
+                mouseWorldAfter = cameraGroup.offset + mouseScreen / cameraGroup.zoomScale
+                cameraGroup.offset += (mouseWorldBefore - mouseWorldAfter
+                                )
+                #cameraGroup.zoomScale = round(cameraGroup.zoomScale * 2) / 2
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_DELETE:
                     self.debugInfo.visible = not self.debugInfo.visible   
@@ -63,8 +78,10 @@ class Game:
 
     # the gameLogic method updates the game state (all the exiting stuff happens here)
     def gameLogic(self):
+        
         tilesBuildingGroup.update()
-
+        cameraGroup.update(self.keys, self.mousePos)
+        uiGroup.update(cameraGroup.cameraRect)
 
         # debug---------------
         self.debugInfo.add("FPS", round(self.clock.get_fps()))
@@ -72,6 +89,7 @@ class Game:
         self.debugInfo.add("Zoom", round(cameraGroup.zoomScale, 2))
         self.debugInfo.add("Mouse Pos", pygame.mouse.get_pos())
         self.debugInfo.add("Sprites Rendered", self.renderedSprites)
+        self.debugInfo.add("Camera Rect", cameraGroup.cameraRect)
         #self.debug_info.add("Tile Under Cursor", world_pos)
 
 
@@ -82,10 +100,13 @@ class Game:
 
     # the drawing method (it draws everything. shocking right?)
     def renderFrame(self):
-        self.display.fill("black")
+        self.display.fill(colors.BLACK)
+        # renderering sprites affected by the camera in the order specified in config
+        self.renderedSprites = cameraGroup.customDraw()
+        # renders the ui
+        uiGroup.draw(self.display)
 
-        self.renderedSprites = cameraGroup.customDraw(self.keys, self.mousePos)
-
+        # renders debug info disable with delete key
         self.debugInfo.render(self.display)
 
         pygame.display.flip()
@@ -99,7 +120,7 @@ class Game:
 
             self.renderFrame()
             #print(self.clock.get_fps())
-            self.clock.tick(500)
+            self.clock.tick(120)
             
         
         pygame.quit()
