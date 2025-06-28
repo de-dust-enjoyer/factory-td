@@ -1,5 +1,5 @@
 from config import *
-from tools import cutSpritesheet
+from tools import cutSpritesheet, TextRenderer
 from conv import Conv
 from furnace import Furnace
 from miner import Miner
@@ -60,16 +60,16 @@ class MiniMap(pygame.sprite.Sprite):
 class BuildingMenu(pygame.sprite.Sprite):
     def __init__(self, buildings:list, tilesize:int, sizeX:int, pos:tuple):
         super().__init__()
-
+        self.textRenderer = TextRenderer("assets/font/pixel_font.otf")
+        self.textRenderer.addText("logistics", "0", 10, colors.GREEN, (10,10), rotation=90)
         self.visible = True
-        self.buildings = []
+        self.buildingGroups = buildingGroups
         # formating
         self.borders = {"left": 10, "top": 10, "right": 10, "bottom": 10}
         self.gridPadding = 5
         self.scale = 2
         # getting the imgs for the menu
-        for spritesheet in buildings:
-            self.buildings.append(pygame.transform.scale_by(cutSpritesheet(spritesheet, tilesize)[0], self.scale))
+        
 
 
         # colors
@@ -81,7 +81,7 @@ class BuildingMenu(pygame.sprite.Sprite):
         self.image.fill(self.bgColor)
         self.rect = self.image.get_rect(topleft= pos)
         pygame.draw.rect(self.image, self.borderColor, (0,0,self.rect.width,self.rect.height), self.borderThickness)
-
+        self.textRenderer.render(self.image)
         self.add(uiGroup)
 
     def update(self, cameraRect:pygame.Rect):
