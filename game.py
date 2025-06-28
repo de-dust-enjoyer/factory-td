@@ -4,7 +4,7 @@ from item import Item
 from conv import Conv
 from worldBuilder import WorldBuilder
 from debugInfo import DebugInfo
-from userInterface import MiniMap
+from userInterface import MiniMap, BuildingMenu
 import time
 
 
@@ -33,6 +33,8 @@ class Game:
         self.imgConvStraight = pygame.image.load("assets/sprites/conv/conv-up.png").convert_alpha()
         self.imgConvTurnLeft = pygame.image.load("assets/sprites/conv/conv-turn-left.png").convert_alpha()
         self.imgConvTurnRight = pygame.image.load("assets/sprites/conv/conv-turn-right.png").convert_alpha()
+        self.imgFurnace = pygame.image.load("assets/sprites/machines/furnace.png").convert_alpha()
+        self.imgMiner = pygame.image.load("assets/sprites/machines/miner.png").convert_alpha()
 
         # debug--------------------------
         
@@ -46,10 +48,13 @@ class Game:
         # initializing objects
         self.worldBuilder = WorldBuilder("assets/maps/desert-01.tmx")
         cameraGroup.setWorldSurf(self.worldBuilder.worldSurf) # type:ignore
-        miniMapSize = (200 * self.uiScale)
+        miniMapSize = (250 * self.uiScale)
         miniMapPos = (self.display.get_width() - miniMapSize - 5, 5)
 
         self.miniMap = MiniMap(self.worldBuilder.worldSurf, miniMapSize, miniMapPos) # type:ignore
+        buildingList = [self.imgConvStraight, self.imgFurnace, self.imgMiner]
+        self.buildingMenu = BuildingMenu(buildingList, 16, miniMapSize, (miniMapPos[0], self.miniMap.rect.bottom + 5))
+        
         
     
 

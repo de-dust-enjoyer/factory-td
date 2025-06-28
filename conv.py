@@ -6,11 +6,12 @@ class Conv(Building):
         super().__init__(pos, spritesheet, orientation)
         self.animationSpeed = 6 # 10 times per second
         self.add(tilesConvGroup)
+        self.id = 0
 
-        if tilesConvGroup.empty:
+        if tilesBuildingGroup.empty:
             self.animationTimer = 0
             self.animationFrame = 0
         else:
-            self.animationTimer = tilesConvGroup.sprites()[0].animationTimer
-            self.animationFrame = tilesConvGroup.sprites()[0].animationFrame
+            self.animationTimer = tilesBuildingGroup.sprites()[0].animationTimer
+            self.animationFrame = tilesBuildingGroup.sprites()[0].animationFrame
 
