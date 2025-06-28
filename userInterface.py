@@ -9,6 +9,7 @@ from buildingInfo import buildingIDS, buildingGroups
 class MiniMap(pygame.sprite.Sprite):
     def __init__(self, worldSurf:pygame.Surface, sizeX:int, pos:tuple):
         super().__init__()
+        self.id = "MiniMap"
         self.visible = True
 
         self.borders = {"left": 10, "top": 10, "right": 10, "bottom": 10}
@@ -60,10 +61,11 @@ class MiniMap(pygame.sprite.Sprite):
 class BuildingMenu(pygame.sprite.Sprite):
     def __init__(self, buildings:list, tilesize:int, sizeX:int, pos:tuple):
         super().__init__()
-        self.textRenderer = TextRenderer("assets/font/pixel_font.otf")
-        self.textRenderer.addText("logistics", "0", 10, colors.GREEN, (10,10), rotation=90)
+        self.id = "BuildingMenu"
         self.visible = True
         self.buildingGroups = buildingGroups
+        self.selected = "organization"
+        self.clicking = False
         # formating
         self.borders = {"left": 10, "top": 10, "right": 10, "bottom": 10}
         self.gridPadding = 5
@@ -71,18 +73,62 @@ class BuildingMenu(pygame.sprite.Sprite):
         # getting the imgs for the menu
         
 
+        
+
 
         # colors
         self.bgColor = colors.BLACK
         self.borderColor = colors.DARKGREY
         self.borderThickness = 4
+        self.textColor = colors.LIGHTGREY
+        self.buttonColor = colors.GREY
 
         self.image = pygame.Surface((sizeX, sizeX * 2), pygame.SRCALPHA)
         self.image.fill(self.bgColor)
         self.rect = self.image.get_rect(topleft= pos)
-        pygame.draw.rect(self.image, self.borderColor, (0,0,self.rect.width,self.rect.height), self.borderThickness)
-        self.textRenderer.render(self.image)
+        
         self.add(uiGroup)
+        
+        self.textRenderer = TextRenderer("assets/font/pixel_font.otf")
+        first = True
+        for group in self.buildingGroups:
+            if first:
+                groupPos = (10,12)
+            else:
+                groupPos = (10, self.textRenderer.textObjects[previousGroup].rect.bottom)
+            self.textRenderer.addText(f" {group} ", group, 11, self.textColor, groupPos, rotation=90)
+            first = False
+            previousGroup = group
+            
+        
 
-    def update(self, cameraRect:pygame.Rect):
-        pass
+    def update(self, cameraRect:pygame.Rect): # camera Rect not used in this class
+        self.image.fill(self.bgColor)
+        pygame.draw.rect(self.image, self.borderColor, (0,0,self.rect.width,self.rect.height), self.borderThickness)
+        for group in self.buildingGroups:
+            if self.selected != group:
+                pygame.draw.rect(self.image, self.buttonColor, self.textRenderer.textObjects[group].rect) # type:ignore
+            if pygame.mouse.get_pressed()[0]:
+                if not self.clicking:
+                    if self.textRenderer.textObjects[group].rect.collidepoint(self.getRelPos(pygame.mouse.get_pos())):
+                        self.selected = group
+                        self.clicking = True
+
+            else:
+                self.clicking = False
+
+        self.textRenderer.render(self.image) # type:ignore
+
+
+
+
+
+
+
+    def getRelPos(self, absPos:tuple):
+        relX = absPos[0] - self.rect.left # type:ignore
+        relY = absPos[1] - self.rect.top # type:ignore
+        return (relX, relY)
+
+
+        

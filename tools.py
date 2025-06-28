@@ -41,9 +41,9 @@ class TextRenderer:
         textSurfRaw = self.fonts[size].render(text, False, color)
         # only call the rotate method if rotation is wanted
         if rotation:
-            textSurf = pygame.transform.rotate(textSurfRaw, rotation)
+            textSurf = pygame.transform.rotate(textSurfRaw, rotation).convert_alpha()
         else:
-            textSurf = textSurfRaw
+            textSurf = textSurfRaw.convert_alpha()
         # create a rect object for positioning
         rect = textSurf.get_rect()
         if center:
@@ -57,7 +57,6 @@ class TextRenderer:
 
     def render(self, surface:pygame.Surface):
         for textObject in self.textObjects:
-            print(textObject)
             surface.blit(self.textObjects[textObject].image, self.textObjects[textObject].rect)
 
 

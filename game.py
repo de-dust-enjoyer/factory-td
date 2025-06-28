@@ -68,15 +68,25 @@ class Game:
                 self.running = False
             # zooming only here possible
             if event.type == pygame.MOUSEWHEEL:
-                mouseScreen = pygame.Vector2(self.mousePos)
-                mouseWorldBefore = cameraGroup.offset + mouseScreen / cameraGroup.zoomScale
-                
-                cameraGroup.zoomScale += event.y * cameraGroup.zoomForce
-                cameraGroup.zoomScale = max(cameraGroup.minZoom, min(cameraGroup.maxZoom, cameraGroup.zoomScale))
-                
-                mouseWorldAfter = cameraGroup.offset + mouseScreen / cameraGroup.zoomScale
-                cameraGroup.offset += (mouseWorldBefore - mouseWorldAfter
-                                )
+                mouseNotOnUi = True
+                for uiElement in uiGroup:
+                    if uiElement.rect.collidepoint(self.mousePos):
+                        mouseNotOnUi = False
+                        if uiElement.id == "BuildingMenu":
+                            uiElement.selected = list(uiElement.buildingGroups)[max(0, min(list(uiElement.buildingGroups).index(uiElement.selected) + event.y, len(uiElement.buildingGroups)))]
+                            # nobody will ever understand lol :)
+
+
+                if mouseNotOnUi:        
+                    mouseScreen = pygame.Vector2(self.mousePos)
+                    mouseWorldBefore = cameraGroup.offset + mouseScreen / cameraGroup.zoomScale
+                    
+                    cameraGroup.zoomScale += event.y * cameraGroup.zoomForce
+                    cameraGroup.zoomScale = max(cameraGroup.minZoom, min(cameraGroup.maxZoom, cameraGroup.zoomScale))
+                    
+                    mouseWorldAfter = cameraGroup.offset + mouseScreen / cameraGroup.zoomScale
+                    cameraGroup.offset += (mouseWorldBefore - mouseWorldAfter
+                                    )
                 #cameraGroup.zoomScale = round(cameraGroup.zoomScale * 2) / 2
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_F2:
