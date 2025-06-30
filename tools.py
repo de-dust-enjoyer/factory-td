@@ -27,6 +27,7 @@ def gridAllign(pos:tuple, tilesize:int):
     return (round(pos[0] / tilesize) * tilesize, round(pos[1] / tilesize) * tilesize)
 
 
+
 class TextRenderer:
     def __init__(self, pathToFont:str):
         self.fonts = {}
@@ -59,8 +60,18 @@ class TextRenderer:
         for textObject in self.textObjects:
             surface.blit(self.textObjects[textObject].image, self.textObjects[textObject].rect)
 
+    def scale(self, id:str, newsizeX:float, newsizeY:float):
+        if id in self.textObjects:
+            self.textObjects[id].scale(newsizeX, newsizeY)
+
 
 class CustomTextObject:
     def __init__(self, textSurf:pygame.Surface, rect:pygame.Rect):
         self.image = textSurf
         self.rect = rect
+
+    def scale(self, newsizeX:float, newsizeY:float):
+        newImage = pygame.transform.scale(self.image, (round(newsizeX), round(newsizeY)))
+        newRect = newImage.get_rect(topleft= self.rect.topleft)
+        self.image = newImage
+        self.rect = newRect

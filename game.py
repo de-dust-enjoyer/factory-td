@@ -22,6 +22,7 @@ class Game:
         self.clicked = False
 
         self.uiScale = 1
+        self.uiDefaultSize = 250
 
         self.fps = 120
 
@@ -48,12 +49,12 @@ class Game:
         # initializing objects
         self.worldBuilder = WorldBuilder("assets/maps/desert-01.tmx")
         cameraGroup.setWorldSurf(self.worldBuilder.worldSurf) # type:ignore
-        miniMapSize = (250 * self.uiScale)
+        miniMapSize = (self.uiDefaultSize * self.uiScale)
         miniMapPos = (self.display.get_width() - miniMapSize - 5, 5)
 
         self.miniMap = MiniMap(self.worldBuilder.worldSurf, miniMapSize, miniMapPos) # type:ignore
         buildingList = [self.imgConvStraight, self.imgFurnace, self.imgMiner]
-        self.buildingMenu = BuildingMenu(buildingList, 16, miniMapSize, (miniMapPos[0], self.miniMap.rect.bottom + 5))
+        self.buildingMenu = BuildingMenu(buildingList, 16, self.uiDefaultSize * self.uiScale, (miniMapPos[0], self.miniMap.rect.bottom + 5)) # type:ignore
         
         
     
@@ -69,15 +70,19 @@ class Game:
             # zooming only here possible
             if event.type == pygame.MOUSEWHEEL:
                 mouseNotOnUi = True
+
+                # check if mouse is on any ui element
                 for uiElement in uiGroup:
                     if uiElement.rect.collidepoint(self.mousePos):
+                        # if the mouse is on a ui element disable zooming the map
                         mouseNotOnUi = False
+                        # if scroll happens with mouse on the building menu: scroll through the building groups
                         if uiElement.id == "BuildingMenu":
-                            uiElement.selected = list(uiElement.buildingGroups)[max(0, min(list(uiElement.buildingGroups).index(uiElement.selected) + event.y, len(uiElement.buildingGroups)))]
+                            uiElement.selected = list(uiElement.buildingGroups)[max(0, min(list(uiElement.buildingGroups).index(uiElement.selected) - event.y, len(uiElement.buildingGroups) - 1))]
                             # nobody will ever understand lol :)
 
-
-                if mouseNotOnUi:        
+                # only allow map zoom if mouse is not on ui
+                if mouseNotOnUi:
                     mouseScreen = pygame.Vector2(self.mousePos)
                     mouseWorldBefore = cameraGroup.offset + mouseScreen / cameraGroup.zoomScale
                     
@@ -85,15 +90,16 @@ class Game:
                     cameraGroup.zoomScale = max(cameraGroup.minZoom, min(cameraGroup.maxZoom, cameraGroup.zoomScale))
                     
                     mouseWorldAfter = cameraGroup.offset + mouseScreen / cameraGroup.zoomScale
-                    cameraGroup.offset += (mouseWorldBefore - mouseWorldAfter
-                                    )
-                #cameraGroup.zoomScale = round(cameraGroup.zoomScale * 2) / 2
+                    cameraGroup.offset += (mouseWorldBefore - mouseWorldAfter)
+                # change the visibility of ui and debug menu with the f-keys
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_F2:
                     self.debugInfo.visible = not self.debugInfo.visible
                 if event.key == pygame.K_F1:
                     for uiElement in uiGroup:
                         uiElement.visible = not uiElement.visible
+                if event.key == pygame.K_ESCAPE:
+                    self.running = False
         
                 
                 
@@ -129,6 +135,7 @@ class Game:
         self.display.fill(colors.BLACK)
         # renderering sprites affected by the camera in the order specified in config
         self.renderedSprites = cameraGroup.customDraw()
+
         # renders the ui
         uiGroup.draw(self.display)
 

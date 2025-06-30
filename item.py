@@ -1,8 +1,9 @@
 from config import *
 
 class Item(pygame.sprite.Sprite):
-    def __init__(self, pos:tuple, img:pygame.Surface, tilesize:tuple= (8, 8)):
+    def __init__(self, pos:tuple, id:str, img:pygame.Surface, tilesize:tuple= (8, 8)):
         super().__init__()
+        self.id = id
         self.add(itemGroup)
         self.add(cameraGroup)
         self.image = img
